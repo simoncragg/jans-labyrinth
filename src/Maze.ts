@@ -4,6 +4,7 @@ import { Size } from "./Size";
 export class Maze {
   private size: Size;
   private cells: Cell[] = [];
+  private visitedStack: Cell[] = [];
 
   constructor(size: Size) {
     this.size = size;
@@ -15,13 +16,42 @@ export class Maze {
 
     let current = this.getCell(0, 0);
     while (current) {
+      current.visited = true;
       const next = this.checkNeighbours(current);
-      current = next;
+      if (next) {
+        current.removeWalls(next);
+        //console.log("walls removed:\n", current, "\n", next);
+        this.visitedStack.push(current);
+        current = next;
+      } else {
+        current = this.visitedStack.pop();
+        //console.log("pop", current);
+      }
     }
+
+    this.cells.forEach((cell) => (cell.visited = false));
+    console.log("done building");
+
+    console.log(this.cells[9999]);
   }
 
   private checkNeighbours(cell: Cell): Cell | undefined {
-    return cell ? undefined : cell; // todo: implement this function
+    const n = this.getCell(cell.x, cell.y - 1);
+    const e = this.getCell(cell.x + 1, cell.y);
+    const s = this.getCell(cell.x, cell.y + 1);
+    const w = this.getCell(cell.x - 1, cell.y);
+    const neighbours = [n, e, s, w];
+
+    const unvisitedNeighbours = neighbours.filter(
+      (neighbour) => neighbour && !neighbour.visited
+    );
+
+    if (unvisitedNeighbours.length === 0) {
+      return undefined;
+    }
+
+    const randomIndex = Math.floor(Math.random() * unvisitedNeighbours.length);
+    return unvisitedNeighbours[randomIndex];
   }
 
   private getCell(x: number, y: number): Cell | undefined {

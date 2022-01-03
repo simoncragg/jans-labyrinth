@@ -3,6 +3,7 @@ import { Configuration } from "webpack";
 import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 
 const config: Configuration = {
+  watch: true,
   entry: "./src/index.tsx",
   module: {
     rules: [
@@ -42,6 +43,11 @@ const config: Configuration = {
       },
     }),
   ],
+  performance: {
+    hints: false,
+    maxEntrypointSize: 512000,
+    maxAssetSize: 512000,
+  },
 };
 
 export default config;
