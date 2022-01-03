@@ -4,8 +4,8 @@ import { Size } from "./Size";
 
 const App = () => {
 
-  const mazeSize: Size = new Size(20, 20);
-  const canvasSize: Size = new Size(800, 800);
+  const mazeSize: Size = new Size(100, 100);
+  const canvasSize: Size = new Size(1200, 600);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const maze = useRef<Maze>(new Maze(mazeSize));
   
@@ -14,7 +14,10 @@ const App = () => {
   useEffect(() => {
       const canvas = canvasRef.current as HTMLCanvasElement;
       if (!canvas) throw new Error("No canvas!");
-      maze.current.draw(canvas.getContext("2d"), canvasSize);
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("No context!");
+      context.strokeStyle = "#eeeeee";
+      maze.current.draw(context, canvasSize);
       //window.requestAnimationFrame(update);
   });
 

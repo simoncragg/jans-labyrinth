@@ -39,7 +39,7 @@ export class Cell {
   }
 
   draw(ctx: CanvasRenderingContext2D, size: number) {
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = "#212121";
     ctx.fillRect(this.x * size, this.y * size, size, size);
 
     if (this.walls[north]) {

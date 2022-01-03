@@ -1,3 +1,12 @@
+h1 {
+  font-family: "Tourney", cursive;
+  color: #eeeeee;
+}
+
+body {
+  background-color: #121212;
+}
+
 #maze {
-  border: 1px solid #000;
+  border: 1px solid #eeeeee;
 }
