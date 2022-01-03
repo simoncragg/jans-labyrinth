@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { Maze } from "./Maze";
+import { MazeBuilder } from "./MazeBuilder";
 import { Size } from "./Size";
 
 const App = () => {
@@ -7,7 +8,8 @@ const App = () => {
   const mazeSize: Size = new Size(100, 100);
   const canvasSize: Size = new Size(1200, 600);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const maze = useRef<Maze>(new Maze(mazeSize));
+  const mazeBuilderRef = useRef(new MazeBuilder());
+  const mazeRef = useRef<Maze>(mazeBuilderRef.current.build(mazeSize));
   
   // const update = (ts: DOMHighResTimeStamp) => {};
 
@@ -17,7 +19,7 @@ const App = () => {
       const context = canvas.getContext("2d");
       if (!context) throw new Error("No context!");
       context.strokeStyle = "#eeeeee";
-      maze.current.draw(context, canvasSize);
+      mazeRef.current.draw(context, canvasSize);
       //window.requestAnimationFrame(update);
   });
 
