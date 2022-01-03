@@ -13,7 +13,7 @@ export class Maze {
       }
     }
 
-    let current = this.getCells(0, 0);
+    let current = this.getCell(0, 0);
     while (current) {
       const next = this.checkNeighbours(current);
       current = next;
@@ -24,7 +24,7 @@ export class Maze {
     return cell ? undefined : cell; // todo: implement this function
   }
 
-  private getCells(x: number, y: number): Cell | undefined {
+  private getCell(x: number, y: number): Cell | undefined {
     if (x < 0 || x > this.size.width - 1 || y < 0 || y > this.size.height - 1) {
       return undefined;
     }
