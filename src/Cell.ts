@@ -1,73 +1,75 @@
 import { Point } from "./Point";
-
-const north = 0;
-const east = 1;
-const south = 2;
-const west = 3;
+import { Direction } from "./Direction";
+import { ColorTheme } from "./ColorTheme";
 
 export class Cell {
-  x: number;
-  y: number;
-  visited: boolean;
+  position: Point;
+  lastVisited: number | false;
   walls: boolean[];
 
   constructor(x: number, y: number) {
-    this.x = x;
-    this.y = y;
-    this.visited = false;
+    this.position = new Point(x, y);
     this.walls = [true, true, true, true];
+    this.lastVisited = false;
   }
 
   removeWalls(neighbour: Cell) {
-    if (this.x === neighbour.x) {
-      if (this.y < neighbour.y) {
-        this.walls[south] = false;
-        neighbour.walls[north] = false;
+    const { x, y } = this.position;
+    if (x === neighbour.position.x) {
+      if (y < neighbour.position.y) {
+        this.walls[Direction.south] = false;
+        neighbour.walls[Direction.north] = false;
       } else {
-        this.walls[north] = false;
-        neighbour.walls[south] = false;
+        this.walls[Direction.north] = false;
+        neighbour.walls[Direction.south] = false;
       }
     } else {
-      if (this.x < neighbour.x) {
-        this.walls[east] = false;
-        neighbour.walls[west] = false;
+      if (x < neighbour.position.x) {
+        this.walls[Direction.east] = false;
+        neighbour.walls[Direction.west] = false;
       } else {
-        this.walls[west] = false;
-        neighbour.walls[east] = false;
+        this.walls[Direction.west] = false;
+        neighbour.walls[Direction.east] = false;
       }
     }
   }
 
   draw(ctx: CanvasRenderingContext2D, size: number) {
-    ctx.fillStyle = "#212121";
-    ctx.fillRect(this.x * size, this.y * size, size, size);
+    ctx.fillStyle = ColorTheme.mazeBackground;
+    const { x, y } = this.position;
 
-    if (this.walls[north]) {
-      const startPoint = new Point(this.x * size, this.y * size);
+    ctx.fillRect(x * size, y * size, size, size);
+
+    if (this.walls[Direction.north]) {
+      const startPoint = new Point(x * size, y * size);
       const endPoint = startPoint.add(size, 0);
       this.drawLine(ctx, startPoint, endPoint);
     }
 
-    if (this.walls[east]) {
-      const startPoint = new Point(this.x * size, this.y * size).add(size, 0);
+    if (this.walls[Direction.east]) {
+      const startPoint = new Point(x * size, y * size).add(size, 0);
       const endPoint = startPoint.add(0, size);
       this.drawLine(ctx, startPoint, endPoint);
     }
 
-    if (this.walls[south]) {
-      const startPoint = new Point(this.x * size, this.y * size).add(0, size);
+    if (this.walls[Direction.south]) {
+      const startPoint = new Point(x * size, y * size).add(0, size);
       const endPoint = startPoint.add(size, 0);
       this.drawLine(ctx, startPoint, endPoint);
     }
 
-    if (this.walls[west]) {
-      const startPoint = new Point(this.x * size, this.y * size);
+    if (this.walls[Direction.west]) {
+      const startPoint = new Point(x * size, y * size);
       const endPoint = startPoint.add(0, size);
       this.drawLine(ctx, startPoint, endPoint);
     }
   }
 
-  drawLine(ctx: CanvasRenderingContext2D, startPoint: Point, endPoint: Point) {
+  private drawLine(
+    ctx: CanvasRenderingContext2D,
+    startPoint: Point,
+    endPoint: Point
+  ) {
     ctx.beginPath();
     ctx.moveTo(startPoint.x, startPoint.y);
     ctx.lineTo(endPoint.x, endPoint.y);

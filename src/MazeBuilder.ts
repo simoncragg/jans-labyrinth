@@ -10,7 +10,7 @@ export class MazeBuilder {
 
     let current = maze.getCell(0, 0);
     while (current) {
-      current.visited = true;
+      current.lastVisited = Date.now();
       const next = this.getNextUnvisitedNeighbour(current, maze);
       if (next) {
         current.removeWalls(next);
@@ -28,14 +28,15 @@ export class MazeBuilder {
   }
 
   private getNextUnvisitedNeighbour(cell: Cell, maze: Maze): Cell | undefined {
-    const n = maze.getCell(cell.x, cell.y - 1);
-    const e = maze.getCell(cell.x + 1, cell.y);
-    const s = maze.getCell(cell.x, cell.y + 1);
-    const w = maze.getCell(cell.x - 1, cell.y);
+    const { x: cellX, y: cellY } = cell.position;
+    const n = maze.getCell(cellX, cellY - 1);
+    const e = maze.getCell(cellX + 1, cellY);
+    const s = maze.getCell(cellX, cellY + 1);
+    const w = maze.getCell(cellX - 1, cellY);
     const neighbours = [n, e, s, w];
 
     const unvisitedNeighbours = neighbours.filter(
-      (neighbour) => neighbour && !neighbour.visited
+      (neighbour) => neighbour && !neighbour.lastVisited
     );
 
     if (unvisitedNeighbours.length === 0) {

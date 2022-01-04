@@ -2,8 +2,7 @@ import { Cell } from "./Cell";
 import { Size } from "./Size";
 
 export class Maze {
-  private size: Size;
-
+  size: Size;
   cells: Cell[] = [];
 
   constructor(size: Size) {
@@ -37,6 +36,6 @@ export class Maze {
   }
 
   resetVisits() {
-    this.cells.forEach((cell) => (cell.visited = false));
+    this.cells.forEach((cell) => (cell.lastVisited = false));
   }
 }
