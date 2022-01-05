@@ -82,23 +82,16 @@ export class MazeWalker {
     }
 
     private getNextCell(current: Cell): Cell {
-        const availableDirections = Array<number>();
-        for (let i = 0; i < current.walls.length; i++) {
-            if (!current.walls[i]) {
-                availableDirections.push(i);
-            }
-        }
-
-        const availableNeighbours = availableDirections.map(direction => this.getNeighbour(current, direction));
+        const availableNeighbours = current.availableDirections.map(direction => this.getNeighbour(current, direction));
         const unvisitedNeighboursByOpeningsDesc = availableNeighbours
             .filter(neighbour => !neighbour.visited)
-            .sort((a, b) => b.openingsCount- a.openingsCount);
+            .sort((a, b) => b.availableDirections.length- a.availableDirections.length);
 
         if (unvisitedNeighboursByOpeningsDesc.length > 0) {
-            const highestNeighbourCount = unvisitedNeighboursByOpeningsDesc[0].openingsCount;
+            const highestNeighbourCount = unvisitedNeighboursByOpeningsDesc[0].availableDirections.length;
             
             const topRankingNeighbours = unvisitedNeighboursByOpeningsDesc
-                .filter(neighbour => neighbour.openingsCount === highestNeighbourCount);
+                .filter(neighbour => neighbour.availableDirections.length === highestNeighbourCount);
 
             const randomIndex = Math.floor(Math.random() * topRankingNeighbours.length);
             const cell = topRankingNeighbours[randomIndex];
