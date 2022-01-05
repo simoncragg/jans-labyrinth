@@ -15,7 +15,7 @@ export class MazeWalker {
     exit: Cell;
     visitedStack: Cell[] = [];
     delta = 0;
-    lastUpdateTimestamp: number | undefined;
+    lastUpdated = -1;
 
     constructor(maze: Maze, startPoint: Point, exitPoint: Point) {
         this.maze = maze;
@@ -28,11 +28,11 @@ export class MazeWalker {
     
     update(ts: DOMHighResTimeStamp) {
 
-        if (!this.lastUpdateTimestamp) {
-            this.lastUpdateTimestamp = ts;
+        if (this.lastUpdated < 0) {
+            this.lastUpdated = ts;
         }
 
-        this.delta += ts - this.lastUpdateTimestamp;
+        this.delta += ts - this.lastUpdated;
         if (this.delta < timeStepIntervalMs) {
             return;
         }
@@ -54,20 +54,19 @@ export class MazeWalker {
         }
 
         this.delta = 0;
-        this.lastUpdateTimestamp = ts;
+        this.lastUpdated = ts;
     }
 
     draw(ctx: CanvasRenderingContext2D | null, canvasSize: Size) {
         if (!ctx) throw new Error("Maze Walker has no context!");
-
         ctx.fillStyle = ColorTheme.visitedMarker;
         this.maze.cells
             .filter(cell => cell.visited)
-            .forEach(cell => {
+            .forEach((cell) => {
                 const { x, y, width, height } = this.getDrawRect(cell, canvasSize, 0.4);
                 ctx.fillRect(x,  y, width, height)
             });
-        
+
         const { x, y, width, height } = this.getDrawRect(this.current, canvasSize, 0.6);
         ctx.fillStyle = ColorTheme.walker;
         ctx.fillRect(x,  y, width, height)
@@ -82,15 +81,36 @@ export class MazeWalker {
     }
 
     private getNextCell(current: Cell): Cell {
-        const availableNeighbours = current.availableDirections.map(direction => this.getNeighbour(current, direction));
-        const unvisitedNeighboursByOpeningsDesc = availableNeighbours
+        const availableNeighbours = current.availableDirections.map(d => this.getNeighbour(current, d));
+        const orderedUnvisitedNeighbours = availableNeighbours
             .filter(neighbour => !neighbour.visited)
             .sort((a, b) => b.availableDirections.length- a.availableDirections.length);
 
-        if (unvisitedNeighboursByOpeningsDesc.length > 0) {
-            const highestNeighbourCount = unvisitedNeighboursByOpeningsDesc[0].availableDirections.length;
-            
-            const topRankingNeighbours = unvisitedNeighboursByOpeningsDesc
+        if (orderedUnvisitedNeighbours.length > 0) {
+
+            if (orderedUnvisitedNeighbours.length === 1) {
+                return orderedUnvisitedNeighbours[0];
+            }
+
+            for (const direction of current.availableDirections) {
+                const neighbour = this.getNeighbour(current, direction);
+                let cell = neighbour;
+                while (!cell.walls[direction]) {
+                    cell = this.getNeighbour(cell, direction);
+                    if (this.isExit(cell)) {
+                        console.log("exit found");
+                        return neighbour;
+                    }
+                }
+
+                if (this.isExit(cell)) {
+                    console.log("exit found");
+                    return neighbour;
+                }
+            }
+
+            const highestNeighbourCount = orderedUnvisitedNeighbours[0].availableDirections.length;
+            const topRankingNeighbours = orderedUnvisitedNeighbours
                 .filter(neighbour => neighbour.availableDirections.length === highestNeighbourCount);
 
             const randomIndex = Math.floor(Math.random() * topRankingNeighbours.length);
@@ -108,16 +128,19 @@ export class MazeWalker {
         return cell;
     }
 
-    private getNeighbour(current: Cell, direction: Direction): Cell {
+    private getNeighbour(cell: Cell, direction: Direction): Cell {
         let point: Point;
         switch (direction) {
-            case 0: point = current.position.sub(0, 1); break;
-            case 1: point = current.position.add(1, 0); break;
-            case 2: point = current.position.add(0, 1); break;
-            case 3: point = current.position.sub(1, 0); break;
-            default: throw new Error(`Invalid direction ${direction}`);
+            case Direction.north: point = cell.position.sub(0, 1); break;
+            case Direction.east: point = cell.position.add(1, 0); break;
+            case Direction.south: point = cell.position.add(0, 1); break;
+            case Direction.west: point = cell.position.sub(1, 0); break;
         }
 
         return this.maze.getCell(point.x, point.y);
+    }
+    
+    private isExit(cell: Cell): boolean {
+        return cell.position.equals(this.exit.position);
     }
 }
