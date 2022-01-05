@@ -7,6 +7,14 @@ export class Cell {
   lastVisited: number | false;
   walls: boolean[];
 
+  get visited(): boolean {
+    return this.lastVisited !== false;
+  }
+
+  get openingsCount(): number {
+    return this.walls.filter((wall) => !wall).length;
+  }
+
   constructor(x: number, y: number) {
     this.position = new Point(x, y);
     this.walls = [true, true, true, true];

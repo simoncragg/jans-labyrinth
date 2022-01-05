@@ -62,7 +62,7 @@ export class MazeWalker {
 
         ctx.fillStyle = ColorTheme.visitedMarker;
         this.maze.cells
-            .filter(cell => cell.lastVisited ?? false)
+            .filter(cell => cell.visited)
             .forEach(cell => {
                 const { x, y, width, height } = this.getDrawRect(cell, canvasSize, 0.4);
                 ctx.fillRect(x,  y, width, height)
@@ -90,17 +90,21 @@ export class MazeWalker {
         }
 
         const availableNeighbours = availableDirections.map(direction => this.getNeighbour(current, direction));
-        const unVisitedNeighbours = availableNeighbours.filter(neighbour => !neighbour?.lastVisited ?? false);
+        const unvisitedNeighboursByOpeningsDesc = availableNeighbours
+            .filter(neighbour => neighbour && !neighbour.visited)
+            .sort((a, b) => (b?.openingsCount ?? 0) - (a?.openingsCount ?? 0));
 
-        if (unVisitedNeighbours.length > 0) {
-            const randomIndex = Math.floor(Math.random() * unVisitedNeighbours.length);
-            const cell = unVisitedNeighbours[randomIndex];
+        if (unvisitedNeighboursByOpeningsDesc.length > 0) {
+            const highestNeighbourCount = unvisitedNeighboursByOpeningsDesc[0]?.openingsCount ?? 0;
+            const topRankingNeighbours = unvisitedNeighboursByOpeningsDesc.filter(n => n?.openingsCount === highestNeighbourCount);
+            const randomIndex = Math.floor(Math.random() * topRankingNeighbours.length);
+            const cell = topRankingNeighbours[randomIndex];
             if (!cell) throw new Error("Cell cannot be undefined here");
             return cell;
         }
 
         const previouslyVisitedNeighbours = availableNeighbours
-            .filter(neighbour => neighbour?.lastVisited ?? false)
+            .filter(neighbour => neighbour?.visited)
             .sort((a, b) => (a?.lastVisited as number ?? 0) - (b?.lastVisited as number ?? 0));
 
         const cell = previouslyVisitedNeighbours[0];
@@ -110,7 +114,6 @@ export class MazeWalker {
 
     private getNeighbour(current: Cell, direction: Direction): Cell | undefined {
         let point: Point | undefined;
-        console.log("current.position", current.position);
         switch (direction) {
             case 0: point = current.position.sub(0, 1); break;
             case 1: point = current.position.add(1, 0); break;
@@ -119,10 +122,6 @@ export class MazeWalker {
             default: throw new Error(`Invalid direction ${direction}`);
         }
 
-        
-        console.log("direction", direction);
-        console.log("point", point);
-        
         return point 
             ? this.maze.getCell(point.x, point.y) 
             : undefined;
