@@ -81,51 +81,46 @@ export class MazeWalker {
     }
 
     private getNextCell(current: Cell): Cell {
-        const availableNeighbours = current.availableDirections.map(d => this.getNeighbour(current, d));
-        const orderedUnvisitedNeighbours = availableNeighbours
-            .filter(neighbour => !neighbour.visited)
-            .sort((a, b) => b.availableDirections.length- a.availableDirections.length);
+        const neighbours = current.availableDirections.map(d => this.getNeighbour(current, d));
+        const unvisitedNeighbours = neighbours.filter(neighbour => !neighbour.visited);
 
-        if (orderedUnvisitedNeighbours.length > 0) {
+        if (unvisitedNeighbours.length === 0) {
+            return pickEarliestVisitedCell(neighbours);
+        }
 
-            if (orderedUnvisitedNeighbours.length === 1) {
-                return orderedUnvisitedNeighbours[0];
-            }
+        if (unvisitedNeighbours.length === 1) {
+            return unvisitedNeighbours[0];
+        }
 
-            for (const direction of current.availableDirections) {
-                const neighbour = this.getNeighbour(current, direction);
-                let cell = neighbour;
-                while (!cell.walls[direction]) {
-                    cell = this.getNeighbour(cell, direction);
-                    if (this.isExit(cell)) {
-                        console.log("exit found");
-                        return neighbour;
-                    }
-                }
+        const orderedUnvisitedNeighbours = unvisitedNeighbours
+            .sort((a, b) => b.availableDirections.length - a.availableDirections.length);
 
-                if (this.isExit(cell)) {
+        const nextCellOnClearPathTowardsExit = this.findNextCellOnClearPathTowardsExit(current);
+        if (nextCellOnClearPathTowardsExit) {
+            return nextCellOnClearPathTowardsExit;
+        }
+
+        return pickRandomCellWithMostAvailableDirections(orderedUnvisitedNeighbours);
+    }
+
+    findNextCellOnClearPathTowardsExit(cell: Cell): Cell | false {
+        for (const direction of cell.availableDirections) {
+            const neighbour = this.getNeighbour(cell, direction);
+            let next = neighbour;
+            while (!next.walls[direction]) {
+                next = this.getNeighbour(next, direction);
+                if (this.isExit(next)) {
                     console.log("exit found");
                     return neighbour;
                 }
             }
 
-            const highestNeighbourCount = orderedUnvisitedNeighbours[0].availableDirections.length;
-            const topRankingNeighbours = orderedUnvisitedNeighbours
-                .filter(neighbour => neighbour.availableDirections.length === highestNeighbourCount);
-
-            const randomIndex = Math.floor(Math.random() * topRankingNeighbours.length);
-            const cell = topRankingNeighbours[randomIndex];
-            if (!cell) throw new Error("Cell cannot be undefined here");
-            return cell;
+            if (this.isExit(next)) {
+                console.log("exit found");
+                return neighbour;
+            }
         }
-
-        const previouslyVisitedNeighbours = availableNeighbours
-            .filter(neighbour => neighbour.visited)
-            .sort((a, b) => (a.lastVisited as number) - (b.lastVisited as number));
-
-        const cell = previouslyVisitedNeighbours[0];
-        if (!cell) throw new Error("Cell cannot be undefined here");
-        return cell;
+        return false;
     }
 
     private getNeighbour(cell: Cell, direction: Direction): Cell {
@@ -143,4 +138,19 @@ export class MazeWalker {
     private isExit(cell: Cell): boolean {
         return cell.position.equals(this.exit.position);
     }
+}
+
+function pickRandomCellWithMostAvailableDirections(orderedUnvisitedNeighbours: Cell[]): Cell {
+    const mostAvailableDirections = orderedUnvisitedNeighbours[0].availableDirections.length;
+    const topRanking = orderedUnvisitedNeighbours.filter(x => x.availableDirections.length === mostAvailableDirections);
+    const randomIndex = Math.floor(Math.random() * topRanking.length);
+    return topRanking[randomIndex];
+}
+
+function pickEarliestVisitedCell(availableNeighbours: Cell[]): Cell {
+    const previouslyVisitedNeighbours = availableNeighbours
+            .filter(neighbour => neighbour.visited)
+            .sort((a, b) => (a.lastVisited as number) - (b.lastVisited as number));
+    
+    return previouslyVisitedNeighbours[0];
 }
