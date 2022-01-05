@@ -14,9 +14,10 @@ export class Maze {
     }
   }
 
-  getCell(x: number, y: number): Cell | undefined {
-    if (x < 0 || x > this.size.width - 1 || y < 0 || y > this.size.height - 1) {
-      return undefined;
+  getCell(x: number, y: number): Cell {
+    const cell = new Cell(x, y);
+    if (cell.isOutOfBounds(this.size)) {
+      return cell;
     }
 
     const i = x + this.size.width * y;

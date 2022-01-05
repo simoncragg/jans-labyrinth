@@ -8,18 +8,17 @@ export class MazeBuilder {
   build(size: Size) {
     const maze = new Maze(size);
 
-    let current = maze.getCell(0, 0);
+    let current: Cell | undefined = maze.getCell(0, 0);
+
     while (current) {
       current.lastVisited = Date.now();
       const next = this.getNextUnvisitedNeighbour(current, maze);
       if (next) {
         current.removeWalls(next);
-        //console.log("walls removed:\n", current, "\n", next);
         this.visitedStack.push(current);
         current = next;
       } else {
         current = this.visitedStack.pop();
-        //console.log("pop", current);
       }
     }
 
@@ -36,7 +35,8 @@ export class MazeBuilder {
     const neighbours = [n, e, s, w];
 
     const unvisitedNeighbours = neighbours.filter(
-      (neighbour) => neighbour && !neighbour.lastVisited
+      (neighbour) =>
+        !neighbour.isOutOfBounds(maze.size) && !neighbour.lastVisited
     );
 
     if (unvisitedNeighbours.length === 0) {

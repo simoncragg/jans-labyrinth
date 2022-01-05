@@ -22,8 +22,8 @@ export class MazeWalker {
         const current = maze.getCell(startPoint.x, startPoint.y); 
         const exit = maze.getCell(exitPoint.x, exitPoint.y);
 
-        if (current) this.current = current; else throw new Error("Invalid start position");
-        if (exit) this.exit = exit; else throw new Error("Invalid exit position");
+        if (!current.isOutOfBounds(this.maze.size)) this.current = current; else throw new Error("Start position is out of bounds");
+        if (!exit.isOutOfBounds(this.maze.size)) this.exit = exit; else throw new Error("Exit position is out of bounds");
     }
     
     update(ts: DOMHighResTimeStamp) {
@@ -91,12 +91,15 @@ export class MazeWalker {
 
         const availableNeighbours = availableDirections.map(direction => this.getNeighbour(current, direction));
         const unvisitedNeighboursByOpeningsDesc = availableNeighbours
-            .filter(neighbour => neighbour && !neighbour.visited)
-            .sort((a, b) => (b?.openingsCount ?? 0) - (a?.openingsCount ?? 0));
+            .filter(neighbour => !neighbour.visited)
+            .sort((a, b) => b.openingsCount- a.openingsCount);
 
         if (unvisitedNeighboursByOpeningsDesc.length > 0) {
-            const highestNeighbourCount = unvisitedNeighboursByOpeningsDesc[0]?.openingsCount ?? 0;
-            const topRankingNeighbours = unvisitedNeighboursByOpeningsDesc.filter(n => n?.openingsCount === highestNeighbourCount);
+            const highestNeighbourCount = unvisitedNeighboursByOpeningsDesc[0].openingsCount;
+            
+            const topRankingNeighbours = unvisitedNeighboursByOpeningsDesc
+                .filter(neighbour => neighbour.openingsCount === highestNeighbourCount);
+
             const randomIndex = Math.floor(Math.random() * topRankingNeighbours.length);
             const cell = topRankingNeighbours[randomIndex];
             if (!cell) throw new Error("Cell cannot be undefined here");
@@ -104,16 +107,16 @@ export class MazeWalker {
         }
 
         const previouslyVisitedNeighbours = availableNeighbours
-            .filter(neighbour => neighbour?.visited)
-            .sort((a, b) => (a?.lastVisited as number ?? 0) - (b?.lastVisited as number ?? 0));
+            .filter(neighbour => neighbour.visited)
+            .sort((a, b) => (a.lastVisited as number) - (b.lastVisited as number));
 
         const cell = previouslyVisitedNeighbours[0];
         if (!cell) throw new Error("Cell cannot be undefined here");
         return cell;
     }
 
-    private getNeighbour(current: Cell, direction: Direction): Cell | undefined {
-        let point: Point | undefined;
+    private getNeighbour(current: Cell, direction: Direction): Cell {
+        let point: Point;
         switch (direction) {
             case 0: point = current.position.sub(0, 1); break;
             case 1: point = current.position.add(1, 0); break;
@@ -122,8 +125,6 @@ export class MazeWalker {
             default: throw new Error(`Invalid direction ${direction}`);
         }
 
-        return point 
-            ? this.maze.getCell(point.x, point.y) 
-            : undefined;
+        return this.maze.getCell(point.x, point.y);
     }
 }

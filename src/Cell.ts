@@ -1,6 +1,7 @@
 import { Point } from "./Point";
 import { Direction } from "./Direction";
 import { ColorTheme } from "./ColorTheme";
+import { Size } from "./Size";
 
 export class Cell {
   position: Point;
@@ -19,6 +20,11 @@ export class Cell {
     this.position = new Point(x, y);
     this.walls = [true, true, true, true];
     this.lastVisited = false;
+  }
+
+  isOutOfBounds(mazeSize: Size): boolean {
+    const { x, y } = this.position;
+    return x < 0 || x > mazeSize.width - 1 || y < 0 || y > mazeSize.height - 1;
   }
 
   removeWalls(neighbour: Cell) {

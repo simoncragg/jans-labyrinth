@@ -6,8 +6,8 @@ import { Point } from "./Point";
 import { Size } from "./Size";
 import { ColorTheme as ColorTheme } from "./ColorTheme";
 
-const mazeSize: Size = new Size(100, 50);
-const canvasSize: Size = new Size(1200, 600);
+const mazeSize: Size = new Size(10, 10);
+const canvasSize: Size = new Size(600, 600);
 const exitPoint: Point = new Point(mazeSize.width - 1, mazeSize.height - 1);
 
 const App = () => {
@@ -18,26 +18,24 @@ const App = () => {
   const mazeWalkerRef = useRef<MazeWalker>(new MazeWalker(mazeRef.current, new Point(0, 0), exitPoint));
   
   const update = (ts: DOMHighResTimeStamp) => {
-  mazeWalkerRef.current.update(ts);
-
-  const canvas = canvasRef.current as HTMLCanvasElement;
-  if (!canvas) throw new Error("No canvas!");
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("No context!");
-  mazeRef.current.draw(ctx, canvasSize);
-  mazeWalkerRef.current.draw(ctx, canvasSize);
-  window.requestAnimationFrame(update);
- };
+    mazeWalkerRef.current.update(ts);
+    const canvas = canvasRef.current as HTMLCanvasElement;
+    if (!canvas) throw new Error("No canvas!");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("No context!");
+    mazeRef.current.draw(ctx, canvasSize);
+    mazeWalkerRef.current.draw(ctx, canvasSize);
+    window.requestAnimationFrame(update);
+  };
 
   useEffect(() => {
-      const canvas = canvasRef.current as HTMLCanvasElement;
-      if (!canvas) throw new Error("No canvas!");
-      const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("No context!");
-      ctx.strokeStyle = ColorTheme.mazeWall;
-      mazeRef.current.draw(ctx, canvasSize);
-      window.requestAnimationFrame(update);
-      mazeWalkerRef.current.draw(ctx, canvasSize);
+    const canvas = canvasRef.current as HTMLCanvasElement;
+    if (!canvas) throw new Error("No canvas!");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("No context!");
+    ctx.strokeStyle = ColorTheme.mazeWall;
+    mazeRef.current.draw(ctx, canvasSize);
+    window.requestAnimationFrame(update);
   });
 
   return (
