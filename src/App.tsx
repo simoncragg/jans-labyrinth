@@ -6,16 +6,17 @@ import { Point } from "./Point";
 import { Size } from "./Size";
 import { ColorTheme as ColorTheme } from "./ColorTheme";
 
-const mazeSize: Size = new Size(10, 10);
-const canvasSize: Size = new Size(600, 600);
-const exitPoint: Point = new Point(mazeSize.width - 1, mazeSize.height - 1);
+const mazeSize = new Size(10, 10);
+const canvasSize = new Size(600, 600);
+const startPoint = new Point(0, 0)
+const exitPoint = new Point(mazeSize.width - 1, mazeSize.height - 1);
 
 const App = () => {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mazeBuilderRef = useRef(new MazeBuilder());
-  const mazeRef = useRef<Maze>(mazeBuilderRef.current.build(mazeSize));
-  const mazeWalkerRef = useRef<MazeWalker>(new MazeWalker(mazeRef.current, new Point(0, 0), exitPoint));
+  const mazeRef = useRef<Maze>(mazeBuilderRef.current.build(mazeSize, startPoint, exitPoint));
+  const mazeWalkerRef = useRef<MazeWalker>(new MazeWalker(mazeRef.current));
   
   const update = (ts: DOMHighResTimeStamp) => {
     mazeWalkerRef.current.update(ts);

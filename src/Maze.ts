@@ -1,17 +1,27 @@
 import { Cell } from "./Cell";
+import { Point } from "./Point";
 import { Size } from "./Size";
 
 export class Maze {
   size: Size;
   cells: Cell[] = [];
+  start: Cell;
+  exit: Cell;
 
-  constructor(size: Size) {
+  constructor(size: Size, startPoint: Point, exitPoint: Point) {
     this.size = size;
     for (let y = 0; y < this.size.height; y++) {
       for (let x = 0; x < this.size.width; x++) {
         this.cells.push(new Cell(x, y));
       }
     }
+    this.start = this.getCell(startPoint.x, startPoint.y);
+    if (this.start.isOutOfBounds(this.size))
+      throw new Error("Start position is out of bounds");
+
+    this.exit = this.getCell(exitPoint.x, exitPoint.y);
+    if (this.exit.isOutOfBounds(this.size))
+      throw new Error("Exit position is out of bounds");
   }
 
   getCell(x: number, y: number): Cell {

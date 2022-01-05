@@ -1,12 +1,13 @@
 import { Cell } from "./Cell";
 import { Maze } from "./Maze";
+import { Point } from "./Point";
 import { Size } from "./Size";
 
 export class MazeBuilder {
   private visitedStack: Cell[] = [];
 
-  build(size: Size) {
-    const maze = new Maze(size);
+  build(size: Size, start: Point, end: Point) {
+    const maze = new Maze(size, start, end);
 
     let current: Cell | undefined = maze.getCell(0, 0);
 

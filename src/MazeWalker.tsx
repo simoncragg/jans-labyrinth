@@ -12,18 +12,13 @@ export class MazeWalker {
 
     maze: Maze;
     current: Cell;
-    exit: Cell;
     visitedStack: Cell[] = [];
     delta = 0;
     lastUpdated = -1;
 
-    constructor(maze: Maze, startPoint: Point, exitPoint: Point) {
+    constructor(maze: Maze) {
         this.maze = maze;
-        const current = maze.getCell(startPoint.x, startPoint.y); 
-        const exit = maze.getCell(exitPoint.x, exitPoint.y);
-
-        if (!current.isOutOfBounds(this.maze.size)) this.current = current; else throw new Error("Start position is out of bounds");
-        if (!exit.isOutOfBounds(this.maze.size)) this.exit = exit; else throw new Error("Exit position is out of bounds");
+        this.current = this.maze.start;
     }
     
     update(ts: DOMHighResTimeStamp) {
@@ -37,7 +32,7 @@ export class MazeWalker {
             return;
         }
 
-        if (!this.current.position.equals(this.exit.position)) {
+        if (!this.current.position.equals(this.maze.exit.position)) {
             const next = this.getNextCell(this.current);
             if (next) {
                 this.current.lastVisited = Date.now();
@@ -144,7 +139,7 @@ export class MazeWalker {
     }
 
     private isExit(cell: Cell): boolean {
-        return cell.position.equals(this.exit.position);
+        return cell.position.equals(this.maze.exit.position);
     }
 
     private pickRandomCellWithMostAvailableDirections(orderedUnvisitedNeighbours: Cell[]): Cell {
