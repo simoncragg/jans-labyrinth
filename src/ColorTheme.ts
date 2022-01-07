@@ -14,4 +14,8 @@ export class ColorTheme {
   static get visitedMarker(): string {
     return "#3d2d55";
   }
+
+  static get deadEndMarker(): string {
+    return "#03DAC5";
+  }
 }
