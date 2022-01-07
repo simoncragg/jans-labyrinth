@@ -15,6 +15,7 @@ export class MazeWalker {
     visitedStack: Cell[] = [];
     delta = 0;
     lastUpdated = -1;
+    currentDirection = Direction.north;
 
     constructor(maze: Maze) {
         this.maze = maze;
@@ -33,19 +34,17 @@ export class MazeWalker {
         }
 
         if (!this.current.position.equals(this.maze.exit.position)) {
-            const next = this.getNextCell(this.current);
+            let next = this.getNextCell(this.current);
             if (next) {
                 this.current.lastVisited = Date.now();
                 this.visitedStack.push(this.current); 
-                this.current = next;
             } else {
-                const current = this.visitedStack.pop();
-                if (current) {
-                    this.current = current;
-                } else {
-                    throw new Error("Should never get here");
-                }
+                next = this.visitedStack.pop();
             }
+
+            if (!next) throw new Error("Next is undefined")
+            this.currentDirection = this.getDirection(next);
+            this.current = next;
         }
 
         this.delta = 0;
@@ -62,6 +61,15 @@ export class MazeWalker {
                 ctx.fillRect(x,  y, width, height)
             });
 
+        ctx.fillStyle = ColorTheme.deadEndMarker;
+        this.maze.cells
+            .filter(cell => cell.isDeadEnd)
+            .forEach((cell) => {
+                const { x, y, width, height } = this.getDrawRect(cell, canvasSize, 0.4);
+                ctx.fillRect(x,  y, width, height)
+            });
+
+
         const { x, y, width, height } = this.getDrawRect(this.current, canvasSize, 0.6);
         ctx.fillStyle = ColorTheme.walker;
         ctx.fillRect(x,  y, width, height)
@@ -77,22 +85,24 @@ export class MazeWalker {
 
     private getNextCell(current: Cell): Cell | undefined {
         const neighbours = current.availableDirections.map(d => this.getNeighbour(current, d));
-        const unvisitedNeighbours = neighbours.filter(neighbour => !neighbour.visited);
+        const prospectiveNeighbours = neighbours.filter(neighbour => !neighbour.visited && !neighbour.isDeadEnd);
 
-        if (unvisitedNeighbours.length === 0) {
+        if (prospectiveNeighbours.length === 0) {
             return this.pickEarliestVisitedCell(neighbours);
         }
 
-        if (unvisitedNeighbours.length === 1) {
-            return unvisitedNeighbours[0];
+        if (prospectiveNeighbours.length === 1) {
+            return prospectiveNeighbours[0];
         }
 
-        const orderedUnvisitedNeighbours = unvisitedNeighbours
+        const orderedUnvisitedNeighbours = prospectiveNeighbours
             .sort((a, b) => b.availableDirections.length - a.availableDirections.length);
 
-        const nextCellOnClearPathTowardsExit = this.findNextCellOnClearPathTowardsExit(current);
-        if (nextCellOnClearPathTowardsExit) {
-            return nextCellOnClearPathTowardsExit;
+        if (this.isDirectionAboutToChange(prospectiveNeighbours)) {
+            const nextCellOnClearStraightTowardsExit = this.findNextCellOnStraightPathTowardsExit(current);
+            if (nextCellOnClearStraightTowardsExit) {
+                return nextCellOnClearStraightTowardsExit;
+            }
         }
 
         return this.pickRandomCellWithMostAvailableDirections(orderedUnvisitedNeighbours);
@@ -118,7 +128,15 @@ export class MazeWalker {
         return previouslyVisitedNeighbours[0];
     }
 
-    private findNextCellOnClearPathTowardsExit(cell: Cell): Cell | false {
+    private isDirectionAboutToChange(prospectiveNeighbours: Cell[]): boolean {
+        const possibleDirections = prospectiveNeighbours
+            .flatMap(x => x.availableDirections)
+            .filter((cell, i, arr) => arr.indexOf(cell) === i);
+        
+            return possibleDirections.indexOf(this.currentDirection) === -1;
+    }
+
+    private findNextCellOnStraightPathTowardsExit(cell: Cell): Cell | false {
         for (const direction of cell.availableDirections) {
             const neighbour = this.getNeighbour(cell, direction);
             let next = neighbour;
@@ -147,5 +165,21 @@ export class MazeWalker {
         const topRanking = orderedUnvisitedNeighbours.filter(x => x.availableDirections.length === mostAvailableDirections);
         const randomIndex = Math.floor(Math.random() * topRanking.length);
         return topRanking[randomIndex];
+    }
+
+    private getDirection(next: Cell): Direction {
+        if (this.current.position.y > next.position.y) {
+            return Direction.north;
+        }
+        if (this.current.position.x < next.position.x) {
+            return Direction.east;
+        }
+        if (this.current.position.y < next.position.y) {
+            return Direction.south;
+        }
+        if (this.current.position.x > next.position.x) {
+            return Direction.west;
+        }
+        return this.currentDirection;
     }
 }

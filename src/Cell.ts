@@ -9,6 +9,7 @@ export class Cell {
   position: Point;
   lastVisited: number | false;
   walls: boolean[];
+  isDeadEnd = false;
 
   get visited(): boolean {
     return this.lastVisited !== false;
