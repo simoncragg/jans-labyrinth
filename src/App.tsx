@@ -6,8 +6,8 @@ import { Point } from "./Point";
 import { Size } from "./Size";
 import { ColorTheme as ColorTheme } from "./ColorTheme";
 
-const mazeSize = new Size(10, 10);
-const canvasSize = new Size(600, 600);
+const mazeSize = new Size(20, 10);
+const canvasSize = new Size(1200, 600);
 const startPoint = new Point(0, 0)
 const exitPoint = new Point(mazeSize.width - 1, mazeSize.height - 1);
 
