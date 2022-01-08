@@ -6,7 +6,7 @@ A maze generation react app with animated maze solver/walker.
 
 ## Algorithm
 
-Uses the depth-first search / backtracking algoritm to generate a maze. The maze solver is based off the same algorithm but has some added features, namely line-of-sight detection of the exit and dead end corridors.
+Uses the depth-first search / backtracking algorithm to generate a maze. The maze solver is based off the same algorithm but has some added features, namely line-of-sight detection of the exit and dead end corridors.
 
 ## Project name
 
