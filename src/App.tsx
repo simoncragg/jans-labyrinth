@@ -14,18 +14,15 @@ const exitPoint = new Point(mazeSize.width - 1, mazeSize.height - 1);
 const App = () => {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const mazeBuilderRef = useRef(new MazeBuilder());
   const mazeRef = useRef<Maze>(mazeBuilderRef.current.build(mazeSize, startPoint, exitPoint));
   const mazeWalkerRef = useRef<MazeWalker>(new MazeWalker(mazeRef.current));
   
   const update = (ts: DOMHighResTimeStamp) => {
     mazeWalkerRef.current.update(ts);
-    const canvas = canvasRef.current as HTMLCanvasElement;
-    if (!canvas) throw new Error("No canvas!");
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("No context!");
-    mazeRef.current.draw(ctx, canvasSize);
-    mazeWalkerRef.current.draw(ctx, canvasSize);
+    mazeRef.current.draw(ctxRef.current, canvasSize);
+    mazeWalkerRef.current.draw(ctxRef.current, canvasSize);
     window.requestAnimationFrame(update);
   };
 
@@ -34,6 +31,7 @@ const App = () => {
     if (!canvas) throw new Error("No canvas!");
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("No context!");
+    ctxRef.current= ctx;
     ctx.strokeStyle = ColorTheme.mazeWall;
     mazeRef.current.draw(ctx, canvasSize);
     window.requestAnimationFrame(update);
