@@ -6,7 +6,7 @@ import { Direction } from "./Direction";
 import { Rect } from "./Rect";
 import { ColorTheme } from "./ColorTheme";
 
-const timeStepIntervalMs = 2000; //16.6666666667;
+const timeStepIntervalMs = 500; //16.6666666667;
 
 export class MazeWalker {
 
@@ -14,7 +14,7 @@ export class MazeWalker {
     current: Cell;
     visitedStack: Cell[] = [];
     deltaMs = 0;
-    lastUpdated = -1;
+    lastUpdated = 0;
     currentDirection = Direction.north;
 
     constructor(maze: Maze) {
@@ -24,11 +24,7 @@ export class MazeWalker {
     
     update(ts: DOMHighResTimeStamp) {
 
-        if (this.lastUpdated === -1) {
-            this.lastUpdated = ts;
-        }
-
-        this.deltaMs += ts - this.lastUpdated;
+        this.deltaMs += (ts - this.lastUpdated);
         if (this.deltaMs < timeStepIntervalMs) {
             return;
         }
@@ -84,29 +80,29 @@ export class MazeWalker {
 
     private getNextCell(): Cell | undefined {
         const neighbours = this.current.availableDirections.map(d => this.getNeighbour(this.current, d));
-        const prospectiveNeighbours = neighbours.filter(neighbour => !neighbour.visited && !neighbour.isDeadEnd);
+        const unchartedNeighbours = neighbours.filter(neighbour => !neighbour.visited && !neighbour.isDeadEnd);
 
-        if (prospectiveNeighbours.length === 0) {
+        if (unchartedNeighbours.length === 0) {
             return this.pickEarliestVisitedCell(neighbours);
         }
 
-        if (prospectiveNeighbours.length === 1) {
-            const direction = this.getDirection(prospectiveNeighbours[0]);
+        if (unchartedNeighbours.length === 1) {
+            const direction = this.getDirection(unchartedNeighbours[0]);
             if (direction !== this.currentDirection) {
-                const pathToDeadEnd = this.detectDeadEndPath(prospectiveNeighbours[0], direction);
-                if (pathToDeadEnd) {
-                    this.current.lastVisited = Date.now();
-                    pathToDeadEnd?.forEach(cell => cell.isDeadEnd = true);
-                    return undefined;
+                const deadEndPath = this.detectDeadEndPath(unchartedNeighbours[0], direction);
+                if (deadEndPath && !deadEndPath.find(cell => this.isExit(cell))) {
+                    //this.current.lastVisited = Date.now();
+                    deadEndPath?.forEach(cell => cell.isDeadEnd = true);
+                    return this.current;
                 }
             }
-            return prospectiveNeighbours[0];
+            return unchartedNeighbours[0];
         }
 
-        const orderedUnvisitedNeighbours = prospectiveNeighbours
+        const orderedUnvisitedNeighbours = unchartedNeighbours
             .sort((a, b) => b.availableDirections.length - a.availableDirections.length);
 
-        if (this.isDirectionAboutToChange(prospectiveNeighbours)) {
+        if (this.isDirectionAboutToChange(unchartedNeighbours)) {
             const exitPath = this.detectExitPath(this.current);
             if (exitPath) {
                 return exitPath[0];
@@ -158,8 +154,8 @@ export class MazeWalker {
         }
 
         if (cell.availableDirections.length === 1) {
-             deadEndPath.push(cell);
-             return deadEndPath;
+            deadEndPath.push(cell);
+            return deadEndPath;
         }
         return false;
     }
@@ -191,31 +187,26 @@ export class MazeWalker {
         const topRanking = orderedUnvisitedNeighbours.filter(x => x.availableDirections.length === mostAvailableDirections);
         const finalCandidates: Cell[] = [];
 
-        let logging = false;
         for (const neighbour of topRanking) {
             const direction = this.getDirection(neighbour);
             const deadEndPath = this.detectDeadEndPath(neighbour, direction);
             const exitFound = deadEndPath && deadEndPath.find(cell => this.isExit(cell));
-            if (logging) console.log("exitFound", exitFound);
             if (exitFound) {
                 return neighbour;
             }
 
             if (deadEndPath) {
                 deadEndPath.forEach(cell => cell.isDeadEnd = true);
-                logging = true;
                 continue;
             }
             finalCandidates.push(neighbour);
         }
 
         if (finalCandidates.length > 0) {
-            if (logging) console.log("randomising");
             const randomIndex = Math.floor(Math.random() * finalCandidates.length);
             return finalCandidates[randomIndex];
         }
         
-        if (logging) console.log("all deadends");
         this.current.lastVisited = Date.now();
         return undefined;
     }
