@@ -3,7 +3,6 @@ import { Point } from "./Point";
 import { Size } from "./Size";
 import { Cell } from "./Cell";
 import { Direction } from "./Direction";
-import { Rect } from "./Rect";
 import { ColorTheme } from "./ColorTheme";
 
 const timeStepIntervalMs = 500; //16.6666666667;
@@ -53,48 +52,48 @@ export class MazeWalker {
         this.maze.cells
             .filter(cell => cell.visited)
             .forEach((cell) => {
-                const { x, y, width, height } = this.getDrawRect(cell, canvasSize, 0.4);
+                const { x, y, width, height } = this.maze.getCellRect(cell, canvasSize, 0.4);
                 ctx.fillRect(x,  y, width, height)
             });
 
-        ctx.fillStyle = ColorTheme.deadEndMarker;
+        const prevStrokeStyle = ctx.strokeStyle;
+        ctx.strokeStyle = ColorTheme.visitedMarker;
         this.maze.cells
             .filter(cell => cell.isDeadEnd)
             .forEach((cell) => {
-                const { x, y, width, height } = this.getDrawRect(cell, canvasSize, 0.4);
-                ctx.fillRect(x,  y, width, height)
+                const { x, y, width, height } = this.maze.getCellRect(cell, canvasSize, 0.4);
+                ctx.strokeRect(x,  y, width, height)
             });
+        ctx.strokeStyle = prevStrokeStyle
 
-        const { x, y, width, height } = this.getDrawRect(this.current, canvasSize, 0.6);
+        const { x, y, width, height } = this.maze.getCellRect(this.current, canvasSize, 0.6);
         ctx.fillStyle = ColorTheme.walker;
         ctx.fillRect(x,  y, width, height)
     }
 
-    private getDrawRect(cell: Cell, canvasSize: Size, scale: number): Rect {
-        const cellSize = Math.floor(canvasSize.width / this.maze.size.width);
-        const rectSize = new Size(cellSize, cellSize).multiply(scale, scale);
-        const x = (cell.position.x * cellSize) + (cellSize * ((1 - scale) / 2));
-        const y = (cell.position.y * cellSize) + (cellSize * ((1 - scale) / 2));
-        return new Rect(x, y, rectSize.width, rectSize.height);
-    }
-
     private getNextCell(): Cell | undefined {
         const neighbours = this.current.availableDirections.map(d => this.getNeighbour(this.current, d));
-        const unchartedNeighbours = neighbours.filter(neighbour => !neighbour.visited && !neighbour.isDeadEnd);
+        let unchartedNeighbours = neighbours.filter(neighbour => neighbour.uncharted);
+
+        for (const neighbour of unchartedNeighbours) {
+            const direction = this.getDirection(neighbour);
+            const deadEndPath = this.detectDeadEndPath(neighbour, direction);
+            if (deadEndPath) {
+                const exitFound = deadEndPath.find(cell => this.isExit(cell));
+                if (exitFound) {
+                    return neighbour;
+                }
+                deadEndPath.forEach(cell => cell.isDeadEnd = true);
+                continue;
+            }
+        }
+        unchartedNeighbours = unchartedNeighbours.filter(neighbour => neighbour.uncharted);
 
         if (unchartedNeighbours.length === 0) {
             return this.pickEarliestVisitedCell(neighbours);
         }
 
         if (unchartedNeighbours.length === 1) {
-            const direction = this.getDirection(unchartedNeighbours[0]);
-            if (direction !== this.currentDirection) {
-                const deadEndPath = this.detectDeadEndPath(unchartedNeighbours[0], direction);
-                if (deadEndPath && !deadEndPath.find(cell => this.isExit(cell))) {
-                    deadEndPath?.forEach(cell => cell.isDeadEnd = true);
-                    return this.current;
-                }
-            }
             return unchartedNeighbours[0];
         }
 
@@ -184,26 +183,10 @@ export class MazeWalker {
     private pickOptimalNextCell(orderedUnvisitedNeighbours: Cell[]): Cell | undefined {
         const mostAvailableDirections = orderedUnvisitedNeighbours[0].availableDirections.length;
         const topRanking = orderedUnvisitedNeighbours.filter(x => x.availableDirections.length === mostAvailableDirections);
-        const finalCandidates: Cell[] = [];
 
-        for (const neighbour of topRanking) {
-            const direction = this.getDirection(neighbour);
-            const deadEndPath = this.detectDeadEndPath(neighbour, direction);
-            const exitFound = deadEndPath && deadEndPath.find(cell => this.isExit(cell));
-            if (exitFound) {
-                return neighbour;
-            }
-
-            if (deadEndPath) {
-                deadEndPath.forEach(cell => cell.isDeadEnd = true);
-                continue;
-            }
-            finalCandidates.push(neighbour);
-        }
-
-        if (finalCandidates.length > 0) {
-            const randomIndex = Math.floor(Math.random() * finalCandidates.length);
-            return finalCandidates[randomIndex];
+        if (topRanking.length > 0) {
+            const randomIndex = Math.floor(Math.random() * topRanking.length);
+            return topRanking[randomIndex];
         }
         
         this.current.lastVisited = Date.now();

@@ -1,5 +1,7 @@
 import { Cell } from "./Cell";
+import { ColorTheme } from "./ColorTheme";
 import { Point } from "./Point";
+import { Rect } from "./Rect";
 import { Size } from "./Size";
 
 export class Maze {
@@ -34,19 +36,35 @@ export class Maze {
     return this.cells[i];
   }
 
-  draw(context: CanvasRenderingContext2D | null, canvasSize: Size) {
-    if (!context) {
+  draw(ctx: CanvasRenderingContext2D | null, canvasSize: Size) {
+    if (!ctx) {
       throw new Error("No context!");
     }
 
     const cellSize = Math.floor(canvasSize.width / this.size.width);
 
     for (const cell of this.cells) {
-      cell.draw(context, cellSize);
+      cell.draw(ctx, cellSize);
     }
+
+    const { x, y, width, height } = this.getCellRect(
+      this.exit,
+      canvasSize,
+      0.4
+    );
+    ctx.fillStyle = ColorTheme.exitMarker;
+    ctx.fillRect(x, y, width, height);
   }
 
   resetVisits() {
     this.cells.forEach((cell) => (cell.lastVisited = false));
+  }
+
+  getCellRect(cell: Cell, canvasSize: Size, scale: number): Rect {
+    const cellSize = Math.floor(canvasSize.width / this.size.width);
+    const rectSize = new Size(cellSize, cellSize).multiply(scale, scale);
+    const x = cell.position.x * cellSize + cellSize * ((1 - scale) / 2);
+    const y = cell.position.y * cellSize + cellSize * ((1 - scale) / 2);
+    return new Rect(x, y, rectSize.width, rectSize.height);
   }
 }

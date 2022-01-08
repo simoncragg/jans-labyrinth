@@ -15,6 +15,10 @@ export class Cell {
     return this.lastVisited !== false;
   }
 
+  get uncharted(): boolean {
+    return !this.visited && !this.isDeadEnd;
+  }
+
   get availableDirections(): Direction[] {
     if (!this._availableDirections) {
       this._availableDirections = this.getAvailableDirections();

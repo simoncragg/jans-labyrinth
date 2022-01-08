@@ -8,14 +8,14 @@ export class ColorTheme {
   }
 
   static get walker(): string {
-    return "#BB86FC"; // "#03DAC5";
+    return "#BB86FC";
   }
 
   static get visitedMarker(): string {
     return "#3d2d55";
   }
 
-  static get deadEndMarker(): string {
+  static get exitMarker(): string {
     return "#03DAC5";
   }
 }
