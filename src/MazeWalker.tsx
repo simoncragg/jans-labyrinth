@@ -91,7 +91,6 @@ export class MazeWalker {
             if (direction !== this.currentDirection) {
                 const deadEndPath = this.detectDeadEndPath(unchartedNeighbours[0], direction);
                 if (deadEndPath && !deadEndPath.find(cell => this.isExit(cell))) {
-                    //this.current.lastVisited = Date.now();
                     deadEndPath?.forEach(cell => cell.isDeadEnd = true);
                     return this.current;
                 }
