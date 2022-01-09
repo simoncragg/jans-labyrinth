@@ -16,9 +16,12 @@ export class MazeWalker {
     lastUpdated = 0;
     currentDirection = Direction.north;
 
-    constructor(maze: Maze) {
+    constructor(maze: Maze, startPos: Point) {
         this.maze = maze;
-        this.current = this.maze.start;
+        this.current = this.maze.getCell(startPos.x, startPos.y);
+        if (this.current.isOutOfBounds(this.maze.size)) {
+            throw new Error(`Start cell ${this.current.position.toString()} is out of bounds`);
+        }
     }
     
     update(ts: DOMHighResTimeStamp) {
@@ -28,7 +31,7 @@ export class MazeWalker {
             return;
         }
 
-        if (!this.current.position.equals(this.maze.exit.position)) {
+        if (!this.isExit(this.current)) {
             let next = this.getNextCell();
             if (next) {
                 this.current.lastVisited = Date.now();
@@ -210,6 +213,6 @@ export class MazeWalker {
     }
 
     private isExit(cell: Cell): boolean {
-        return cell.position.equals(this.maze.exit.position);
+        return this.maze.exits.filter(exit => exit.position.equals(cell.position)).length === 1;
     }
 }

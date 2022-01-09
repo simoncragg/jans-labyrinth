@@ -18,4 +18,8 @@ export class Point {
   equals(p: Point): boolean {
     return this.x === p.x && this.y === p.y;
   }
+
+  toString() {
+    return `(${this.x},${this.y})`;
+  }
 }

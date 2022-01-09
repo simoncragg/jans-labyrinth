@@ -6,8 +6,8 @@ import { Size } from "./Size";
 export class MazeBuilder {
   private visitedStack: Cell[] = [];
 
-  build(size: Size, start: Point, end: Point) {
-    const maze = new Maze(size, start, end);
+  build(size: Size, exits: Point[]) {
+    const maze = new Maze(size, exits);
 
     let current: Cell | undefined = maze.getCell(0, 0);
 

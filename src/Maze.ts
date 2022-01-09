@@ -7,23 +7,22 @@ import { Size } from "./Size";
 export class Maze {
   size: Size;
   cells: Cell[] = [];
-  start: Cell;
-  exit: Cell;
+  exits: Cell[] = [];
 
-  constructor(size: Size, startPoint: Point, exitPoint: Point) {
+  constructor(size: Size, exits: Point[]) {
     this.size = size;
     for (let y = 0; y < this.size.height; y++) {
       for (let x = 0; x < this.size.width; x++) {
         this.cells.push(new Cell(x, y));
       }
     }
-    this.start = this.getCell(startPoint.x, startPoint.y);
-    if (this.start.isOutOfBounds(this.size))
-      throw new Error("Start position is out of bounds");
 
-    this.exit = this.getCell(exitPoint.x, exitPoint.y);
-    if (this.exit.isOutOfBounds(this.size))
-      throw new Error("Exit position is out of bounds");
+    this.exits = exits.map((exit) => {
+      const cell = this.getCell(exit.x, exit.y);
+      if (cell.isOutOfBounds(this.size))
+        throw new Error(`Exit ${exit} is out of bounds`);
+      return cell;
+    });
   }
 
   getCell(x: number, y: number): Cell {
@@ -47,13 +46,11 @@ export class Maze {
       cell.draw(ctx, cellSize);
     }
 
-    const { x, y, width, height } = this.getCellRect(
-      this.exit,
-      canvasSize,
-      0.4
-    );
-    ctx.fillStyle = ColorTheme.exitMarker;
-    ctx.fillRect(x, y, width, height);
+    this.exits.forEach((exit) => {
+      const { x, y, width, height } = this.getCellRect(exit, canvasSize, 0.4);
+      ctx.fillStyle = ColorTheme.exitMarker;
+      ctx.fillRect(x, y, width, height);
+    });
   }
 
   resetVisits() {

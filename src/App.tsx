@@ -9,15 +9,15 @@ import { ColorTheme as ColorTheme } from "./ColorTheme";
 const mazeSize = new Size(20, 10);
 const canvasSize = new Size(1200, 600);
 const startPoint = new Point(0, 0)
-const exitPoint = new Point(mazeSize.width - 1, mazeSize.height - 1);
+const exitPoints = [new Point(mazeSize.width - 1, mazeSize.height - 1)];
 
 const App = () => {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const mazeBuilderRef = useRef(new MazeBuilder());
-  const mazeRef = useRef<Maze>(mazeBuilderRef.current.build(mazeSize, startPoint, exitPoint));
-  const mazeWalkerRef = useRef<MazeWalker>(new MazeWalker(mazeRef.current));
+  const mazeRef = useRef<Maze>(mazeBuilderRef.current.build(mazeSize, exitPoints));
+  const mazeWalkerRef = useRef<MazeWalker>(new MazeWalker(mazeRef.current, startPoint));
   
   const update = (ts: DOMHighResTimeStamp) => {
     mazeWalkerRef.current.update(ts);
