@@ -5,44 +5,46 @@ import { Cell } from "./Cell";
 import { Direction } from "./Direction";
 import { ColorTheme } from "./ColorTheme";
 
-const timeStepIntervalMs = 500; //16.6666666667;
-
 export class MazeWalker {
 
+    timeStepIntervalMs = 500; //16.6666666667;
+
     maze: Maze;
-    current: Cell;
+    currentCell: Cell;
+    currentDirection = Direction.north;
     visitedStack: Cell[] = [];
     deltaMs = 0;
     lastUpdated = 0;
-    currentDirection = Direction.north;
 
-    constructor(maze: Maze, startPos: Point) {
+    constructor(maze: Maze, startPos: Point, timeStepIntervalMs = 500) {
         this.maze = maze;
-        this.current = this.maze.getCell(startPos.x, startPos.y);
-        if (this.current.isOutOfBounds(this.maze.size)) {
-            throw new Error(`Start cell ${this.current.position} is out of bounds`);
+        this.currentCell = this.maze.getCell(startPos.x, startPos.y);
+        if (this.currentCell.isOutOfBounds(this.maze.size)) {
+            throw new Error(`Start cell ${this.currentCell.position} is out of bounds`);
         }
+        this.timeStepIntervalMs = timeStepIntervalMs;
     }
     
     update(ts: DOMHighResTimeStamp) {
 
         this.deltaMs += (ts - this.lastUpdated);
-        if (this.deltaMs < timeStepIntervalMs) {
+        if (this.deltaMs < this.timeStepIntervalMs) {
+            console.log("exiting at top");
             return;
         }
 
-        if (!this.current.isExit) {
+        if (!this.currentCell.isExit) {
             let next = this.getNextCell();
             if (next) {
-                this.current.lastVisited = performance.now();
-                this.visitedStack.push(this.current); 
+                this.currentCell.lastVisited = performance.now();
+                this.visitedStack.push(this.currentCell); 
             } else {
                 next = this.visitedStack.pop();
             }
 
             if (!next) throw new Error("Next is undefined")
             this.currentDirection = this.getDirection(next);
-            this.current = next;
+            this.currentCell = next;
         }
 
         this.deltaMs = 0;
@@ -69,13 +71,13 @@ export class MazeWalker {
             });
         ctx.strokeStyle = prevStrokeStyle
 
-        const { x, y, width, height } = this.maze.getCellRect(this.current, canvasSize, 0.6);
+        const { x, y, width, height } = this.maze.getCellRect(this.currentCell, canvasSize, 0.6);
         ctx.fillStyle = ColorTheme.walker;
         ctx.fillRect(x,  y, width, height)
     }
 
     private getNextCell(): Cell | undefined {
-        const neighbours = this.current.directions.map(d => this.getNeighbour(this.current, d));
+        const neighbours = this.currentCell.directions.map(d => this.getNeighbour(this.currentCell, d));
         let unchartedNeighbours = neighbours.filter(neighbour => neighbour.uncharted);
 
         for (const neighbour of unchartedNeighbours) {
@@ -104,7 +106,7 @@ export class MazeWalker {
             .sort((a, b) => b.directions.length - a.directions.length);
 
         if (this.isDirectionAboutToChange(unchartedNeighbours)) {
-            const exitPath = this.detectExitPath(this.current);
+            const exitPath = this.detectExitPath(this.currentCell);
             if (exitPath) {
                 return exitPath[0];
             }
@@ -192,21 +194,21 @@ export class MazeWalker {
             return topRanking[randomIndex];
         }
         
-        this.current.lastVisited = performance.now();
+        this.currentCell.lastVisited = performance.now();
         return undefined;
     }
 
     private getDirection(next: Cell): Direction {
-        if (this.current.position.y > next.position.y) {
+        if (this.currentCell.position.y > next.position.y) {
             return Direction.north;
         }
-        if (this.current.position.x < next.position.x) {
+        if (this.currentCell.position.x < next.position.x) {
             return Direction.east;
         }
-        if (this.current.position.y < next.position.y) {
+        if (this.currentCell.position.y < next.position.y) {
             return Direction.south;
         }
-        if (this.current.position.x > next.position.x) {
+        if (this.currentCell.position.x > next.position.x) {
             return Direction.west;
         }
         return this.currentDirection;
