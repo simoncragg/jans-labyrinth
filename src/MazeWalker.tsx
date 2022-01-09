@@ -29,7 +29,6 @@ export class MazeWalker {
 
         this.deltaMs += (ts - this.lastUpdated);
         if (this.deltaMs < this.timeStepIntervalMs) {
-            console.log("exiting at top");
             return;
         }
 
