@@ -34,7 +34,7 @@ export class MazeWalker {
         if (!this.isExit(this.current)) {
             let next = this.getNextCell();
             if (next) {
-                this.current.lastVisited = Date.now();
+                this.current.lastVisited = performance.now();
                 this.visitedStack.push(this.current); 
             } else {
                 next = this.visitedStack.pop();
@@ -192,7 +192,7 @@ export class MazeWalker {
             return topRanking[randomIndex];
         }
         
-        this.current.lastVisited = Date.now();
+        this.current.lastVisited = performance.now();
         return undefined;
     }
 

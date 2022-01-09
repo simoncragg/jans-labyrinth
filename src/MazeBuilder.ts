@@ -12,7 +12,7 @@ export class MazeBuilder {
     let current: Cell | undefined = maze.getCell(0, 0);
 
     while (current) {
-      current.lastVisited = Date.now();
+      current.lastVisited = performance.now();
       const next = this.getNextUnvisitedNeighbour(current, maze);
       if (next) {
         current.removeWalls(next);
