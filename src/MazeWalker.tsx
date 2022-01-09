@@ -20,7 +20,7 @@ export class MazeWalker {
         this.maze = maze;
         this.current = this.maze.getCell(startPos.x, startPos.y);
         if (this.current.isOutOfBounds(this.maze.size)) {
-            throw new Error(`Start cell ${this.current.position.toString()} is out of bounds`);
+            throw new Error(`Start cell ${this.current.position} is out of bounds`);
         }
     }
     
@@ -75,7 +75,7 @@ export class MazeWalker {
     }
 
     private getNextCell(): Cell | undefined {
-        const neighbours = this.current.availableDirections.map(d => this.getNeighbour(this.current, d));
+        const neighbours = this.current.directions.map(d => this.getNeighbour(this.current, d));
         let unchartedNeighbours = neighbours.filter(neighbour => neighbour.uncharted);
 
         for (const neighbour of unchartedNeighbours) {
@@ -101,7 +101,7 @@ export class MazeWalker {
         }
 
         const orderedUnvisitedNeighbours = unchartedNeighbours
-            .sort((a, b) => b.availableDirections.length - a.availableDirections.length);
+            .sort((a, b) => b.directions.length - a.directions.length);
 
         if (this.isDirectionAboutToChange(unchartedNeighbours)) {
             const exitPath = this.detectExitPath(this.current);
@@ -135,7 +135,7 @@ export class MazeWalker {
 
     private isDirectionAboutToChange(prospectiveNeighbours: Cell[]): boolean {
         const possibleDirections = prospectiveNeighbours
-            .flatMap(x => x.availableDirections)
+            .flatMap(x => x.directions)
             .filter((cell, i, arr) => arr.indexOf(cell) === i);
         
             return possibleDirections.indexOf(this.currentDirection) === -1;
@@ -145,16 +145,16 @@ export class MazeWalker {
         const oppositeDirection = direction < 2 ? direction + 2 : direction - 2;
         const deadEndPath = [] as Cell[];
         while (!cell.walls[direction]) {
-            if (cell.availableDirections.length !== 2 || 
-                cell.availableDirections.indexOf(direction) === -1 || 
-                cell.availableDirections.indexOf(oppositeDirection) === -1) {
+            if (cell.directions.length !== 2 || 
+                cell.directions.indexOf(direction) === -1 || 
+                cell.directions.indexOf(oppositeDirection) === -1) {
                 break;
             }
             deadEndPath.push(cell);
             cell = this.getNeighbour(cell, direction);
         }
 
-        if (cell.availableDirections.length === 1) {
+        if (cell.directions.length === 1) {
             deadEndPath.push(cell);
             return deadEndPath;
         }
@@ -162,7 +162,7 @@ export class MazeWalker {
     }
 
     private detectExitPath(cell: Cell): Cell[] | false {
-        for (const direction of cell.availableDirections) {
+        for (const direction of cell.directions) {
             const exitPath: Cell[] = [];
             const neighbour = this.getNeighbour(cell, direction);
             let next = neighbour;
@@ -184,8 +184,8 @@ export class MazeWalker {
     }
 
     private pickOptimalNextCell(orderedUnvisitedNeighbours: Cell[]): Cell | undefined {
-        const mostAvailableDirections = orderedUnvisitedNeighbours[0].availableDirections.length;
-        const topRanking = orderedUnvisitedNeighbours.filter(x => x.availableDirections.length === mostAvailableDirections);
+        const mostAvailableDirections = orderedUnvisitedNeighbours[0].directions.length;
+        const topRanking = orderedUnvisitedNeighbours.filter(x => x.directions.length === mostAvailableDirections);
 
         if (topRanking.length > 0) {
             const randomIndex = Math.floor(Math.random() * topRanking.length);

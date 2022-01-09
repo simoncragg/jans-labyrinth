@@ -4,7 +4,7 @@ import { ColorTheme } from "./ColorTheme";
 import { Size } from "./Size";
 
 export class Cell {
-  private _availableDirections: Direction[] | undefined;
+  private _directions: Direction[] | undefined;
 
   position: Point;
   lastVisited: number | false;
@@ -19,11 +19,11 @@ export class Cell {
     return !this.visited && !this.isDeadEnd;
   }
 
-  get availableDirections(): Direction[] {
-    if (!this._availableDirections) {
-      this._availableDirections = this.getAvailableDirections();
+  get directions(): Direction[] {
+    if (!this._directions) {
+      this._directions = this.getDirections();
     }
-    return this._availableDirections;
+    return this._directions;
   }
 
   constructor(x: number, y: number) {
@@ -100,13 +100,13 @@ export class Cell {
     ctx.stroke();
   }
 
-  private getAvailableDirections(): Direction[] {
-    const availableDirections = Array<number>();
+  private getDirections(): Direction[] {
+    const directions = Array<number>();
     for (let i = 0; i < this.walls.length; i++) {
       if (!this.walls[i]) {
-        availableDirections.push(i);
+        directions.push(i);
       }
     }
-    return availableDirections;
+    return directions;
   }
 }
