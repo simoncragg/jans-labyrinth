@@ -7,7 +7,6 @@ import { Size } from "./Size";
 export class Maze {
   size: Size;
   cells: Cell[] = [];
-  exits: Cell[] = [];
 
   constructor(size: Size, exits: Point[]) {
     this.size = size;
@@ -17,11 +16,11 @@ export class Maze {
       }
     }
 
-    this.exits = exits.map((exit) => {
+    exits.forEach((exit) => {
       const cell = this.getCell(exit.x, exit.y);
       if (cell.isOutOfBounds(this.size))
         throw new Error(`Exit ${exit} is out of bounds`);
-      return cell;
+      cell.isExit = true;
     });
   }
 
@@ -40,13 +39,17 @@ export class Maze {
       throw new Error("No context!");
     }
 
-    const cellSize = Math.floor(canvasSize.width / this.size.width);
+    const exits: Cell[] = [];
 
+    const cellSize = Math.floor(canvasSize.width / this.size.width);
     for (const cell of this.cells) {
+      if (cell.isExit) {
+        exits.push(cell);
+      }
       cell.draw(ctx, cellSize);
     }
 
-    this.exits.forEach((exit) => {
+    exits.forEach((exit) => {
       const { x, y, width, height } = this.getCellRect(exit, canvasSize, 0.4);
       ctx.fillStyle = ColorTheme.exitMarker;
       ctx.fillRect(x, y, width, height);

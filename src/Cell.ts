@@ -10,6 +10,7 @@ export class Cell {
   lastVisited: number | false;
   walls: boolean[];
   isDeadEnd = false;
+  isExit = false;
 
   get visited(): boolean {
     return this.lastVisited !== false;

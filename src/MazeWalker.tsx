@@ -31,7 +31,7 @@ export class MazeWalker {
             return;
         }
 
-        if (!this.isExit(this.current)) {
+        if (!this.current.isExit) {
             let next = this.getNextCell();
             if (next) {
                 this.current.lastVisited = performance.now();
@@ -82,7 +82,7 @@ export class MazeWalker {
             const direction = this.getDirection(neighbour);
             const deadEndPath = this.detectDeadEndPath(neighbour, direction);
             if (deadEndPath) {
-                const exitFound = deadEndPath.find(cell => this.isExit(cell));
+                const exitFound = deadEndPath.find(cell => cell.isExit);
                 if (exitFound) {
                     return neighbour;
                 }
@@ -168,14 +168,14 @@ export class MazeWalker {
             let next = neighbour;
             do {
                 exitPath.push(next);
-                if (this.isExit(next)) {
+                if (next.isExit) {
                     console.log("exit found");
                     return exitPath;
                 }
                 next = this.getNeighbour(next, direction);
             } while (!next.walls[direction])
 
-            if (this.isExit(next)) {
+            if (next.isExit) {
                 console.log("exit found");
                 return exitPath;
             }
@@ -210,9 +210,5 @@ export class MazeWalker {
             return Direction.west;
         }
         return this.currentDirection;
-    }
-
-    private isExit(cell: Cell): boolean {
-        return this.maze.exits.filter(exit => exit.position.equals(cell.position)).length === 1;
     }
 }
