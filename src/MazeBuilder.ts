@@ -44,6 +44,10 @@ export class MazeBuilder {
       return undefined;
     }
 
+    if (unvisitedNeighbours.length === 1) {
+      return unvisitedNeighbours[0];
+    }
+
     const randomIndex = Math.floor(Math.random() * unvisitedNeighbours.length);
     return unvisitedNeighbours[randomIndex];
   }
