@@ -4,6 +4,7 @@ import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 
 const config: Configuration = {
   watch: true,
+  mode: "development",
   entry: "./src/index.tsx",
   module: {
     rules: [
