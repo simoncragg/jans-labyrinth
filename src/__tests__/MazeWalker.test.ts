@@ -86,4 +86,30 @@ describe("maze walker", () => {
     expect(maze.cells.filter((cell) => cell.isDeadEnd).length).toBe(1);
     expect(maze.cells[3].isDeadEnd).toBeTruthy();
   });
+
+  it("can take exit branch", () => {
+    const mazeBuilder = new MazeBuilder();
+    const size = new Size(5, 3);
+    const exits = [new Point(4, 2)];
+
+    // E,E,S,S,W,W {North} {East} {Backtrack 4} {East} E {North} W {North} {East}
+    const deterministicSequenceForBuilderSteps = [
+      0.1, 0.1, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,
+    ];
+    mockRandom(deterministicSequenceForBuilderSteps);
+
+    const maze = mazeBuilder.build(size, exits);
+    const startPos = new Point(0, 0);
+    const mazeWalker = new MazeWalker(maze, startPos, 0.0);
+
+    const expectedStepsToReachExit = 6;
+    for (let i = 0; i < expectedStepsToReachExit; i++) {
+      const ts = performance.now();
+      mazeWalker.update(ts);
+    }
+
+    expect(mazeWalker.currentCell.isExit).toBeTruthy();
+    expect(mazeWalker.currentDirection).toBe(Direction.east);
+    expect(maze.cells.filter((cell) => cell.isDeadEnd).length).toBe(0);
+  });
 });
