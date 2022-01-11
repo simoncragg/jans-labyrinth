@@ -61,6 +61,9 @@ describe("maze builder", () => {
 
     const maze = mazeBuilder.build(size, exits);
 
+    const deterministicSequenceForSteppingSouth = [0.5];
+    mockRandom(deterministicSequenceForSteppingSouth);
+
     for (let y = 0; y < size.height; y++) {
       for (let x = 0; x < size.width; x++) {
         const cell = maze.getCell(x, y);
